@@ -220,7 +220,7 @@ app.delete('/api/records/:id', async (c) => {
   return c.json({ success: true });
 });
 
-// SPA fallback — 非 /api 请求由 assets 处理（wrangler [assets] 配置）
-// 不需要额外代码，[assets] 的 not_found_handling = "single-page-application" 会自动返回 index.html
+// SPA fallback — navigation requests 由 assets 处理（compatibility_date >= 2025-04-01）
+// 非 navigation 请求（如 API 调用）仍走 Worker
 
 export default app;
