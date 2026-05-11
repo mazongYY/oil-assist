@@ -1,32 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../api';
 
-const BING_API = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN';
-
-function useBingWallpaper() {
-  const [url, setUrl] = useState('');
-  useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    const cached = localStorage.getItem('bing_wallpaper');
-    if (cached) {
-      const { url: cachedUrl, date } = JSON.parse(cached);
-      if (date === today) { setUrl(cachedUrl); return; }
-    }
-    fetch(BING_API)
-      .then(r => r.json())
-      .then(data => {
-        const imgUrl = `https://www.bing.com${data.images[0].url}`;
-        setUrl(imgUrl);
-        localStorage.setItem('bing_wallpaper', JSON.stringify({ url: imgUrl, date: today }));
-      })
-      .catch(() => {});
-  }, []);
-  return url;
-}
+const WALLPAPER_URL = 'https://img.0037.pw/file/CSdd3t8x.webp';
 
 export default function Register() {
-  const wallpaper = useBingWallpaper();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
@@ -50,7 +28,7 @@ export default function Register() {
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center bg-no-repeat relative"
-      style={wallpaper ? { backgroundImage: `url(${wallpaper})` } : { backgroundColor: '#f9fafb' }}
+      style={{ backgroundImage: `url(${WALLPAPER_URL})` }}
     >
       {/* 毛玻璃遮罩 */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
