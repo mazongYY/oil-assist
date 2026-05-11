@@ -1,6 +1,6 @@
 # 🚗 油耗助手 - 车辆油耗记录管理系统
 
-一款基于 Cloudflare Pages 部署的多车辆油耗记录管理系统，纯前端实现，数据存储在浏览器 localStorage 中。
+一款基于 Cloudflare 全栈部署的多车辆油耗记录管理系统，支持多设备同步。
 
 ## 功能特性
 
@@ -10,6 +10,8 @@
 - 📈 **趋势图表** — 可视化油耗变化趋势
 - 💰 **费用统计** — 总花费、总加油量、总里程一目了然
 - 📱 **移动端优先** — 响应式设计，适配手机浏览器
+- 🔐 **用户认证** — JWT 登录注册，数据安全隔离
+- ☁️ **多设备同步** — 数据存储在云端，随时随地访问
 
 ## 技术栈
 
@@ -18,7 +20,25 @@
 - **图表**: Recharts
 - **图标**: Lucide React
 - **路由**: React Router v7
-- **部署**: Cloudflare Pages
+- **后端**: Cloudflare Workers + Hono
+- **数据库**: Cloudflare D1 (SQLite)
+- **认证**: JWT (JSON Web Token)
+- **部署**: Cloudflare Pages (前端) + Cloudflare Workers (API)
+
+## 项目结构
+
+```
+├── src/                    # 前端源码
+│   ├── api.ts              # API 客户端
+│   ├── types.ts            # 类型定义
+│   ├── utils.ts            # 工具函数
+│   ├── components/         # 公共组件
+│   └── pages/              # 页面组件
+├── worker/                 # Cloudflare Worker 后端
+│   └── index.ts            # Hono API 路由
+├── wrangler.toml           # Cloudflare 配置
+└── package.json
+```
 
 ## 本地开发
 
@@ -26,50 +46,37 @@
 # 安装依赖
 npm install
 
-# 启动开发服务器
+# 启动前端开发服务器
 npm run dev
+
+# 启动 Worker 开发服务器
+npm run dev:worker
 
 # 构建生产版本
 npm run build
-
-# 预览生产构建
-npm run preview
 ```
 
-## 部署到 Cloudflare Pages
+## 部署
 
-### 方式一：通过 Wrangler CLI
+### 前端 (Cloudflare Pages)
 
 ```bash
-# 安装 wrangler
-npm install -g wrangler
-
-# 登录 Cloudflare
-wrangler login
-
-# 部署
+npm run build
 wrangler pages deploy dist
 ```
 
-### 方式二：通过 Cloudflare Dashboard
+### 后端 (Cloudflare Workers)
 
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. 进入 **Workers & Pages** → **Create application** → **Pages**
-3. 连接你的 Git 仓库
-4. 配置构建设置：
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-5. 点击 **Save and Deploy**
+```bash
+wrangler deploy
+```
 
 ## 数据说明
 
-所有数据存储在浏览器的 localStorage 中，特点：
-
-- ✅ 无需后端服务器
-- ✅ 无需注册登录
-- ✅ 隐私安全（数据不离开本地）
-- ⚠️ 清除浏览器数据会丢失记录
-- ⚠️ 不同浏览器/设备间数据不共享
+- ✅ 数据存储在 Cloudflare D1 云端数据库
+- ✅ 支持多设备同步
+- ✅ 用户数据隔离，隐私安全
+- ✅ 需要注册账号登录使用
 
 ## 油耗计算原理
 
@@ -78,4 +85,3 @@ wrangler pages deploy dist
 1. 每次加满油箱时记录里程表读数
 2. 相邻两次加满之间的里程差 = 行驶距离
 3. 期间所有加油量之和 ÷ 行驶距离 × 100 = 百公里油耗
-
