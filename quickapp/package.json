@@ -1,0 +1,14 @@
+{
+  "name": "oil-assist-quickapp",
+  "version": "1.0.0",
+  "description": "油耗助手快应用版",
+  "scripts": {
+    "build": "hap build",
+    "release": "hap release",
+    "watch": "hap watch"
+  },
+  "devDependencies": {
+    "hap-toolkit": "^0.6.15"
+  },
+  "dependencies": {}
+}

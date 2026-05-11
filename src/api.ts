@@ -1,6 +1,6 @@
-import type { Vehicle, FuelRecord } from './types';
+﻿import type { Vehicle, FuelRecord } from './types';
 
-// API 基础地址 — 同源部署，开发环境用本地
+// 同源部署，API_BASE 为空
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 class ApiClient {
@@ -51,7 +51,7 @@ class ApiClient {
   }
 
   async login(username: string, password: string) {
-    const data = await this.request<{ user: { id: string; username: string; email: string }; token: string }>('/api/auth/login', {
+    const data = await this.request<{ user: { id: string; username: string }; token: string }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });

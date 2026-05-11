@@ -2,16 +2,17 @@ name = "oil-assist"
 main = "src/index.ts"
 compatibility_date = "2025-04-01"
 
-[vars]
+[observability]
+enabled = true
+head_sampling_rate = 1
 
-[[routes]]
-pattern = "oil.0037.us/*"
-zone_name = "0037.us"
+[vars]
+JWT_SECRET = "fo7JrLBHTitAuDUlSyL8YtUvmdZXgVKWv0Mhi5mpYpc="
 
 [[d1_databases]]
 binding = "DB"
 database_name = "oil-assist"
-database_id = "4fafbb7c-ad39-4c44-bffc-1d537d5bebca"
+database_id = "98ca0130-e513-439d-ad8f-d146b179c6d7"
 
 [assets]
 directory = "../dist"

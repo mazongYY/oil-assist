@@ -1,0 +1,271 @@
+<template>
+  <div class="page">
+    <div class="form-card">
+      <text class="form-title">{{isNew ? '添加车辆' : '车辆详情'}}</text>
+
+      <div class="form-row">
+        <text class="label">车辆名称</text>
+        <input class="input" type="text" placeholder="如: 我的爱车" value="{{form.name}}" onchange="changeName"/>
+      </div>
+      <div class="form-row">
+        <text class="label">品牌</text>
+        <input class="input" type="text" placeholder="如: 大众" value="{{form.brand}}" onchange="changeBrand"/>
+      </div>
+      <div class="form-row">
+        <text class="label">型号</text>
+        <input class="input" type="text" placeholder="如: 朗逸" value="{{form.model}}" onchange="changeModel"/>
+      </div>
+      <div class="form-row">
+        <text class="label">车牌号</text>
+        <input class="input" type="text" placeholder="如: 京A12345" value="{{form.plate_number}}" onchange="changePlate"/>
+      </div>
+      <div class="form-row">
+        <text class="label">油箱容量(L)</text>
+        <input class="input" type="number" placeholder="如: 50" value="{{form.tank_capacity}}" onchange="changeTank"/>
+      </div>
+      <div class="form-row">
+        <text class="label">燃油类型</text>
+        <div class="fuel-options">
+          <text class="fuel-tag {{form.fuel_type === 'gasoline92' ? 'active' : ''}}" onclick="selectFuel('gasoline92')">92号</text>
+          <text class="fuel-tag {{form.fuel_type === 'gasoline95' ? 'active' : ''}}" onclick="selectFuel('gasoline95')">95号</text>
+          <text class="fuel-tag {{form.fuel_type === 'gasoline98' ? 'active' : ''}}" onclick="selectFuel('gasoline98')">98号</text>
+          <text class="fuel-tag {{form.fuel_type === 'diesel' ? 'active' : ''}}" onclick="selectFuel('diesel')">柴油</text>
+        </div>
+      </div>
+
+      <button class="btn-save" onclick="handleSave">{{isNew ? '添加' : '保存'}}</button>
+    </div>
+
+    <div class="records-section" if="{{!isNew}}">
+      <div class="section-header">
+        <text class="section-title">加油记录</text>
+        <text class="btn-add-record" onclick="goAddRecord">+ 添加</text>
+      </div>
+      <div class="record-list" for="{{records}}">
+        <div class="record-item">
+          <div class="record-main">
+            <text class="record-date">{{$item.date}}</text>
+            <text class="record-cost">{{$item.total_cost}}元</text>
+          </div>
+          <div class="record-sub">
+            <text class="record-info">{{$item.liters}}L × {{$item.price_per_liter}}元/L</text>
+            <text class="record-odometer">{{$item.odometer}}km</text>
+          </div>
+        </div>
+      </div>
+      <div class="empty" if="{{records.length === 0}}">
+        <text class="empty-text">暂无加油记录</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .page {
+    flex-direction: column;
+    background-color: #f5f5f5;
+    padding: 24px;
+  }
+  .form-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 32px;
+  }
+  .form-title {
+    font-size: 34px;
+    font-weight: bold;
+    color: #333333;
+    margin-bottom: 24px;
+  }
+  .form-row {
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
+  .label {
+    font-size: 26px;
+    color: #666666;
+    margin-bottom: 8px;
+  }
+  .input {
+    height: 80px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #e0e0e0;
+    font-size: 28px;
+  }
+  .fuel-options {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .fuel-tag {
+    padding: 12px 24px;
+    margin-right: 16px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    font-size: 26px;
+    color: #666666;
+  }
+  .fuel-tag.active {
+    background-color: #1e88e5;
+    color: #ffffff;
+  }
+  .btn-save {
+    background-color: #1e88e5;
+    color: #ffffff;
+    font-size: 30px;
+    height: 88px;
+    border-radius: 12px;
+    margin-top: 16px;
+    justify-content: center;
+    align-items: center;
+  }
+  .records-section {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 32px;
+    margin-top: 24px;
+  }
+  .section-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #333333;
+  }
+  .btn-add-record {
+    font-size: 26px;
+    color: #1e88e5;
+  }
+  .record-item {
+    padding: 16px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: #f0f0f0;
+  }
+  .record-main {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .record-date {
+    font-size: 28px;
+    color: #333333;
+  }
+  .record-cost {
+    font-size: 28px;
+    color: #e53935;
+    font-weight: bold;
+  }
+  .record-sub {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .record-info {
+    font-size: 24px;
+    color: #999999;
+  }
+  .record-odometer {
+    font-size: 24px;
+    color: #999999;
+  }
+  .empty {
+    padding: 40px;
+    align-items: center;
+  }
+  .empty-text {
+    font-size: 26px;
+    color: #999999;
+  }
+</style>
+
+<script>
+  import router from '@system.router'
+  import prompt from '@system.prompt'
+  import api from '../../common/api.js'
+
+  export default {
+    data: {
+      isNew: true,
+      vehicleId: '',
+      form: {
+        name: '',
+        brand: '',
+        model: '',
+        plate_number: '',
+        fuel_type: 'gasoline92',
+        tank_capacity: ''
+      },
+      records: []
+    },
+    onInit() {
+      const params = this.$page.params || {}
+      if (params.id && params.id !== 'new') {
+        this.isNew = false
+        this.vehicleId = params.id
+        this.loadVehicle(params.id)
+        this.loadRecords(params.id)
+      }
+    },
+    loadVehicle(id) {
+      api.getVehicle(id).then(data => {
+        this.form = {
+          name: data.name,
+          brand: data.brand,
+          model: data.model,
+          plate_number: data.plate_number,
+          fuel_type: data.fuel_type,
+          tank_capacity: data.tank_capacity
+        }
+      }).catch(err => {
+        prompt.showToast({ message: err.message })
+      })
+    },
+    loadRecords(vehicleId) {
+      api.getRecords(vehicleId).then(data => {
+        this.records = data
+      }).catch(() => {})
+    },
+    changeName(e) { this.form.name = e.value },
+    changeBrand(e) { this.form.brand = e.value },
+    changeModel(e) { this.form.model = e.value },
+    changePlate(e) { this.form.plate_number = e.value },
+    changeTank(e) { this.form.tank_capacity = e.value },
+    selectFuel(type) {
+      this.form.fuel_type = type
+    },
+    handleSave() {
+      if (!this.form.name) {
+        prompt.showToast({ message: '请输入车辆名称' })
+        return
+      }
+      const data = {
+        ...this.form,
+        tank_capacity: Number(this.form.tank_capacity) || 0
+      }
+      if (this.isNew) {
+        api.createVehicle(data).then(() => {
+          prompt.showToast({ message: '添加成功' })
+          router.back()
+        }).catch(err => {
+          prompt.showToast({ message: err.message })
+        })
+      } else {
+        api.updateVehicle(this.vehicleId, data).then(() => {
+          prompt.showToast({ message: '保存成功' })
+          router.back()
+        }).catch(err => {
+          prompt.showToast({ message: err.message })
+        })
+      }
+    },
+    goAddRecord() {
+      router.push({ uri: '/pages/record-form', params: { vehicleId: this.vehicleId } })
+    }
+  }
+</script>

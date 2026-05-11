@@ -6,9 +6,9 @@ import * as db from './db';
 
 const app = new Hono<{ Bindings: Env }>();
 
-// CORS — 允许前端访问
+// CORS — 允许开发环境跨域访问（生产环境同源不需要）
 app.use('*', cors({
-  origin: (origin) => origin, // 允许所有来源（生产环境可限制）
+  origin: ['http://localhost:5173', 'http://localhost:4173'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   maxAge: 86400,
@@ -31,7 +31,6 @@ app.post('/api/auth/register', async (c) => {
       return c.json({ error: '密码至少6位' }, 400);
     }
     
-    // 检查用户名是否已存在
     const existingUser = await db.getUserByUsername(c.env, username);
     if (existingUser) {
       return c.json({ error: '用户名已存在' }, 409);
@@ -50,19 +49,13 @@ app.post('/api/auth/register', async (c) => {
 // 登录
 app.post('/api/auth/login', async (c) => {
   try {
-    const { username, email, password } = await c.req.json();
+    const { username, password } = await c.req.json();
     
-    if ((!username && !email) || !password) {
-      return c.json({ error: '用户名/邮箱和密码必填' }, 400);
+    if (!username || !password) {
+      return c.json({ error: '用户名和密码必填' }, 400);
     }
     
-    // 支持 username 或 email 登录
-    let user;
-    if (email) {
-      user = await db.getUserByEmail(c.env, email);
-    } else {
-      user = await db.getUserByUsername(c.env, username);
-    }
+    const user = await db.getUserByUsername(c.env, username);
     if (!user) {
       return c.json({ error: '用户名或密码错误' }, 401);
     }
@@ -74,7 +67,7 @@ app.post('/api/auth/login', async (c) => {
     
     const token = await generateToken(user.id, user.username, c.env.JWT_SECRET);
     
-    return c.json({ user: { id: user.id, username: user.username, email: user.email }, token });
+    return c.json({ user: { id: user.id, username: user.username }, token });
   } catch (e) {
     return c.json({ error: '登录失败' }, 500);
   }
@@ -144,8 +137,8 @@ app.delete('/api/vehicles/:id', async (c) => {
   const payload = await authenticate(c.req.raw, c.env);
   if (!payload) return c.json({ error: '未登录' }, 401);
   
-  const ok = await db.deleteVehicle(c.env, c.req.param('id'), payload.userId);
-  if (!ok) return c.json({ error: '车辆不存在' }, 404);
+  const deleted = await db.deleteVehicle(c.env, c.req.param('id'), payload.userId);
+  if (!deleted) return c.json({ error: '车辆不存在' }, 404);
   
   return c.json({ success: true });
 });
@@ -179,21 +172,20 @@ app.post('/api/records', async (c) => {
   if (!payload) return c.json({ error: '未登录' }, 401);
   
   const data = await c.req.json();
-  if (!data.vehicle_id || !data.date) {
-    return c.json({ error: '车辆ID和日期必填' }, 400);
+  if (!data.vehicle_id || !data.date || data.odometer == null || data.liters == null || data.price_per_liter == null) {
+    return c.json({ error: '必填字段缺失' }, 400);
   }
   
   const record = await db.createRecord(c.env, payload.userId, {
     vehicle_id: data.vehicle_id,
     date: data.date,
-    odometer: data.odometer || 0,
-    liters: data.liters || 0,
-    price_per_liter: data.price_per_liter || 0,
-    total_cost: data.total_cost || 0,
-    station: data.station || '',
+    odometer: data.odometer,
+    liters: data.liters,
+    price_per_liter: data.price_per_liter,
+    total_cost: data.total_cost || data.liters * data.price_per_liter,
+    station: data.station,
     is_full: data.is_full ?? true,
-    low_fuel_light: data.low_fuel_light ?? false,
-    note: data.note || '',
+    notes: data.notes,
   });
   
   return c.json(record, 201);
@@ -214,13 +206,17 @@ app.delete('/api/records/:id', async (c) => {
   const payload = await authenticate(c.req.raw, c.env);
   if (!payload) return c.json({ error: '未登录' }, 401);
   
-  const ok = await db.deleteRecord(c.env, c.req.param('id'), payload.userId);
-  if (!ok) return c.json({ error: '记录不存在' }, 404);
+  const deleted = await db.deleteRecord(c.env, c.req.param('id'), payload.userId);
+  if (!deleted) return c.json({ error: '记录不存在' }, 404);
   
   return c.json({ success: true });
 });
 
-// SPA fallback — navigation requests 由 assets 处理（compatibility_date >= 2025-04-01）
-// 非 navigation 请求（如 API 调用）仍走 Worker
+// ==================== 静态资源 fallback ====================
+// Worker 统一处理：API 路由 + SPA fallback
+app.get('*', async (c) => {
+  // 静态资源由 [assets] 处理，这里只做 SPA fallback
+  return c.redirect('/index.html');
+});
 
 export default app;

@@ -1,0 +1,141 @@
+<template>
+  <div class="page">
+    <div class="list" for="{{records}}">
+      <div class="record-card" onclick="goEdit($item.id)">
+        <div class="record-header">
+          <text class="record-date">{{$item.date}}</text>
+          <text class="record-cost">{{$item.total_cost}}元</text>
+        </div>
+        <div class="record-body">
+          <text class="record-info">{{$item.liters}}L × {{$item.price_per_liter}}元/L</text>
+          <text class="record-odometer">里程: {{$item.odometer}}km</text>
+        </div>
+        <div class="record-footer">
+          <text class="record-station" if="{{$item.station}}">{{$item.station}}</text>
+          <text class="record-full" if="{{$item.is_full}}">满箱</text>
+          <text class="record-note" if="{{$item.note}}">{{$item.note}}</text>
+        </div>
+      </div>
+    </div>
+    <div class="empty" if="{{records.length === 0}}">
+      <text class="empty-text">暂无加油记录</text>
+    </div>
+    <button class="btn-add" onclick="goAdd">+ 添加记录</button>
+  </div>
+</template>
+
+<style>
+  .page {
+    flex-direction: column;
+    background-color: #f5f5f5;
+    padding: 24px;
+    padding-bottom: 140px;
+  }
+  .record-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .record-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .record-date {
+    font-size: 30px;
+    font-weight: bold;
+    color: #333333;
+  }
+  .record-cost {
+    font-size: 32px;
+    color: #e53935;
+    font-weight: bold;
+  }
+  .record-body {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 12px;
+  }
+  .record-info {
+    font-size: 26px;
+    color: #666666;
+  }
+  .record-odometer {
+    font-size: 26px;
+    color: #666666;
+  }
+  .record-footer {
+    flex-direction: row;
+    margin-top: 8px;
+  }
+  .record-station {
+    font-size: 24px;
+    color: #999999;
+    margin-right: 16px;
+  }
+  .record-full {
+    font-size: 22px;
+    color: #4caf50;
+    background-color: #e8f5e9;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-right: 16px;
+  }
+  .record-note {
+    font-size: 24px;
+    color: #999999;
+  }
+  .empty {
+    padding: 80px;
+    align-items: center;
+  }
+  .empty-text {
+    font-size: 28px;
+    color: #999999;
+  }
+  .btn-add {
+    position: fixed;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    background-color: #1e88e5;
+    color: #ffffff;
+    font-size: 30px;
+    height: 88px;
+    border-radius: 12px;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+
+<script>
+  import router from '@system.router'
+  import prompt from '@system.prompt'
+  import api from '../../common/api.js'
+
+  export default {
+    data: {
+      records: []
+    },
+    onInit() {
+      this.loadData()
+    },
+    onRefresh() {
+      this.loadData()
+    },
+    loadData() {
+      api.getRecords().then(data => {
+        this.records = data
+      }).catch(err => {
+        prompt.showToast({ message: err.message })
+      })
+    },
+    goEdit(id) {
+      router.push({ uri: '/pages/record-form', params: { id: id } })
+    },
+    goAdd() {
+      router.push({ uri: '/pages/record-form' })
+    }
+  }
+</script>

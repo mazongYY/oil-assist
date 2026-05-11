@@ -7,8 +7,8 @@ export async function createUser(env: Env, username: string, passwordHash: strin
   const now = new Date().toISOString();
   
   await env.DB.prepare(
-    'INSERT INTO users (id, username, email, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
-  ).bind(id, username, username, passwordHash, now, now).run();
+    'INSERT INTO users (id, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'
+  ).bind(id, username, passwordHash, now, now).run();
   
   return { id, username, created_at: now, updated_at: now };
 }
@@ -17,14 +17,6 @@ export async function getUserByUsername(env: Env, username: string): Promise<(Us
   const result = await env.DB.prepare(
     'SELECT * FROM users WHERE username = ?'
   ).bind(username).first<User & { password_hash: string }>();
-  
-  return result || null;
-}
-
-export async function getUserByEmail(env: Env, email: string): Promise<User | null> {
-  const result = await env.DB.prepare(
-    'SELECT id, username, email, created_at, updated_at FROM users WHERE email = ?'
-  ).bind(email).first<User>();
   
   return result || null;
 }
@@ -108,8 +100,8 @@ export async function createRecord(env: Env, userId: string, data: Omit<FuelReco
   const now = new Date().toISOString();
   
   await env.DB.prepare(
-    'INSERT INTO fuel_records (id, vehicle_id, user_id, date, odometer, liters, price_per_liter, total_cost, station, is_full, low_fuel_light, note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(id, data.vehicle_id, userId, data.date, data.odometer, data.liters, data.price_per_liter, data.total_cost, data.station, data.is_full ? 1 : 0, data.low_fuel_light ? 1 : 0, data.note, now, now).run();
+    'INSERT INTO fuel_records (id, user_id, vehicle_id, date, odometer, liters, price_per_liter, total_cost, station, is_full, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(id, userId, data.vehicle_id, data.date, data.odometer, data.liters, data.price_per_liter, data.total_cost, data.station || null, data.is_full ? 1 : 0, data.notes || null, now, now).run();
   
   return { id, user_id: userId, ...data, created_at: now, updated_at: now };
 }
@@ -121,8 +113,8 @@ export async function updateRecord(env: Env, id: string, userId: string, data: P
   const updated = { ...existing, ...data, updated_at: new Date().toISOString() };
   
   await env.DB.prepare(
-    'UPDATE fuel_records SET date = ?, odometer = ?, liters = ?, price_per_liter = ?, total_cost = ?, station = ?, is_full = ?, low_fuel_light = ?, note = ?, updated_at = ? WHERE id = ? AND user_id = ?'
-  ).bind(updated.date, updated.odometer, updated.liters, updated.price_per_liter, updated.total_cost, updated.station, updated.is_full ? 1 : 0, updated.low_fuel_light ? 1 : 0, updated.note, updated.updated_at, id, userId).run();
+    'UPDATE fuel_records SET vehicle_id = ?, date = ?, odometer = ?, liters = ?, price_per_liter = ?, total_cost = ?, station = ?, is_full = ?, notes = ?, updated_at = ? WHERE id = ? AND user_id = ?'
+  ).bind(updated.vehicle_id, updated.date, updated.odometer, updated.liters, updated.price_per_liter, updated.total_cost, updated.station || null, updated.is_full ? 1 : 0, updated.notes || null, updated.updated_at, id, userId).run();
   
   return updated;
 }

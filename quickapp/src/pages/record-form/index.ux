@@ -1,0 +1,223 @@
+<template>
+  <div class="page">
+    <div class="form-card">
+      <text class="form-title">{{isNew ? '添加记录' : '编辑记录'}}</text>
+
+      <div class="form-row">
+        <text class="label">日期</text>
+        <input class="input" type="date" value="{{form.date}}" onchange="changeDate"/>
+      </div>
+      <div class="form-row">
+        <text class="label">里程(km)</text>
+        <input class="input" type="number" placeholder="当前里程表读数" value="{{form.odometer}}" onchange="changeOdometer"/>
+      </div>
+      <div class="form-row">
+        <text class="label">加油量(L)</text>
+        <input class="input" type="number" placeholder="本次加油升数" value="{{form.liters}}" onchange="changeLiters"/>
+      </div>
+      <div class="form-row">
+        <text class="label">单价(元/L)</text>
+        <input class="input" type="number" placeholder="每升价格" value="{{form.price_per_liter}}" onchange="changePrice"/>
+      </div>
+      <div class="form-row">
+        <text class="label">总费用(元): {{totalCost}}</text>
+      </div>
+      <div class="form-row">
+        <text class="label">加油站</text>
+        <input class="input" type="text" placeholder="可选" value="{{form.station}}" onchange="changeStation"/>
+      </div>
+      <div class="form-row">
+        <text class="label">备注</text>
+        <input class="input" type="text" placeholder="可选" value="{{form.note}}" onchange="changeNote"/>
+      </div>
+      <div class="form-row switch-row">
+        <text class="label">是否满箱</text>
+        <switch checked="{{form.is_full}}" onchange="changeFull"/>
+      </div>
+      <div class="form-row switch-row">
+        <text class="label">油灯亮了</text>
+        <switch checked="{{form.low_fuel_light}}" onchange="changeLight"/>
+      </div>
+
+      <button class="btn-save" onclick="handleSave">{{isNew ? '添加' : '保存'}}</button>
+      <button class="btn-delete" if="{{!isNew}}" onclick="handleDelete">删除此记录</button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .page {
+    flex-direction: column;
+    background-color: #f5f5f5;
+    padding: 24px;
+  }
+  .form-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 32px;
+  }
+  .form-title {
+    font-size: 34px;
+    font-weight: bold;
+    color: #333333;
+    margin-bottom: 24px;
+  }
+  .form-row {
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
+  .switch-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .label {
+    font-size: 26px;
+    color: #666666;
+    margin-bottom: 8px;
+  }
+  .switch-row .label {
+    margin-bottom: 0;
+  }
+  .input {
+    height: 80px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #e0e0e0;
+    font-size: 28px;
+  }
+  .btn-save {
+    background-color: #1e88e5;
+    color: #ffffff;
+    font-size: 30px;
+    height: 88px;
+    border-radius: 12px;
+    margin-top: 16px;
+    justify-content: center;
+    align-items: center;
+  }
+  .btn-delete {
+    background-color: #ffffff;
+    color: #e53935;
+    font-size: 28px;
+    height: 80px;
+    border-radius: 12px;
+    margin-top: 16px;
+    border-width: 1px;
+    border-color: #e53935;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+
+<script>
+  import router from '@system.router'
+  import prompt from '@system.prompt'
+  import api from '../../common/api.js'
+
+  export default {
+    data: {
+      isNew: true,
+      recordId: '',
+      vehicleId: '',
+      form: {
+        date: '',
+        odometer: '',
+        liters: '',
+        price_per_liter: '',
+        station: '',
+        is_full: true,
+        low_fuel_light: false,
+        note: ''
+      }
+    },
+    computed: {
+      totalCost() {
+        const liters = Number(this.form.liters) || 0
+        const price = Number(this.form.price_per_liter) || 0
+        return (liters * price).toFixed(2)
+      }
+    },
+    onInit() {
+      const params = this.$page.params || {}
+      this.vehicleId = params.vehicleId || ''
+      if (params.id) {
+        this.isNew = false
+        this.recordId = params.id
+        this.loadRecord(params.id)
+      } else {
+        // 默认今天日期
+        const now = new Date()
+        this.form.date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+      }
+    },
+    loadRecord(id) {
+      api.getRecord(id).then(data => {
+        this.form = {
+          date: data.date,
+          odometer: String(data.odometer),
+          liters: String(data.liters),
+          price_per_liter: String(data.price_per_liter),
+          station: data.station || '',
+          is_full: data.is_full,
+          low_fuel_light: data.low_fuel_light,
+          note: data.note || ''
+        }
+        this.vehicleId = data.vehicle_id
+      }).catch(err => {
+        prompt.showToast({ message: err.message })
+      })
+    },
+    changeDate(e) { this.form.date = e.value },
+    changeOdometer(e) { this.form.odometer = e.value },
+    changeLiters(e) { this.form.liters = e.value },
+    changePrice(e) { this.form.price_per_liter = e.value },
+    changeStation(e) { this.form.station = e.value },
+    changeNote(e) { this.form.note = e.value },
+    changeFull(e) { this.form.is_full = e.checked },
+    changeLight(e) { this.form.low_fuel_light = e.checked },
+    handleSave() {
+      if (!this.form.date || !this.form.odometer || !this.form.liters || !this.form.price_per_liter) {
+        prompt.showToast({ message: '请填写必要信息' })
+        return
+      }
+      const data = {
+        vehicle_id: this.vehicleId,
+        date: this.form.date,
+        odometer: Number(this.form.odometer),
+        liters: Number(this.form.liters),
+        price_per_liter: Number(this.form.price_per_liter),
+        total_cost: Number(this.totalCost),
+        station: this.form.station,
+        is_full: this.form.is_full,
+        low_fuel_light: this.form.low_fuel_light,
+        note: this.form.note
+      }
+      if (this.isNew) {
+        api.createRecord(data).then(() => {
+          prompt.showToast({ message: '添加成功' })
+          router.back()
+        }).catch(err => {
+          prompt.showToast({ message: err.message })
+        })
+      } else {
+        api.updateRecord(this.recordId, data).then(() => {
+          prompt.showToast({ message: '保存成功' })
+          router.back()
+        }).catch(err => {
+          prompt.showToast({ message: err.message })
+        })
+      }
+    },
+    handleDelete() {
+      api.deleteRecord(this.recordId).then(() => {
+        prompt.showToast({ message: '删除成功' })
+        router.back()
+      }).catch(err => {
+        prompt.showToast({ message: err.message })
+      })
+    }
+  }
+</script>
