@@ -1,8 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../api';
 
+const BING_API = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN';
+
+function useBingWallpaper() {
+  const [url, setUrl] = useState('');
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const cached = localStorage.getItem('bing_wallpaper');
+    if (cached) {
+      const { url: cachedUrl, date } = JSON.parse(cached);
+      if (date === today) { setUrl(cachedUrl); return; }
+    }
+    fetch(BING_API)
+      .then(r => r.json())
+      .then(data => {
+        const imgUrl = `https://www.bing.com${data.images[0].url}`;
+        setUrl(imgUrl);
+        localStorage.setItem('bing_wallpaper', JSON.stringify({ url: imgUrl, date: today }));
+      })
+      .catch(() => {});
+  }, []);
+  return url;
+}
+
 export default function Register() {
+  const wallpaper = useBingWallpaper();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
@@ -24,15 +48,21 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
+    <div
+      className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center bg-no-repeat relative"
+      style={wallpaper ? { backgroundImage: `url(${wallpaper})` } : { backgroundColor: '#f9fafb' }}
+    >
+      {/* 毛玻璃遮罩 */}
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+
+      <div className="relative z-10 w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">⛽</div>
-          <h1 className="text-2xl font-bold text-gray-800">油耗助手</h1>
-          <p className="text-gray-500 mt-1">创建新账号</p>
+          <h1 className="text-2xl font-bold text-white drop-shadow-lg">油耗助手</h1>
+          <p className="text-white/80 mt-1 drop-shadow">创建新账号</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-6 space-y-4">
           {error && (
             <div className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm">{error}</div>
           )}
@@ -43,7 +73,7 @@ export default function Register() {
               type="text"
               value={form.username}
               onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white/80"
               placeholder="请输入用户名"
               required
             />
@@ -55,7 +85,7 @@ export default function Register() {
               type="password"
               value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white/80"
               placeholder="至少6位"
               required
               minLength={6}
