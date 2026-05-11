@@ -1,14 +1,18 @@
-name = "oil-assist-api"
+name = "oil-assist"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
 
 [vars]
 
 [[routes]]
-pattern = "oil-api.0037.us/*"
+pattern = "oil.0037.us/*"
 zone_name = "0037.us"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "oil-assist"
 database_id = "4fafbb7c-ad39-4c44-bffc-1d537d5bebca"
+
+[assets]
+directory = "../dist"
+not_found_handling = "single-page-application"

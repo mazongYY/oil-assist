@@ -1,7 +1,7 @@
 import type { Vehicle, FuelRecord } from './types';
 
-// API 基础地址 — 开发环境用本地，生产环境用 Cloudflare
-const API_BASE = import.meta.env.VITE_API_URL || 'https://oil-api.0037.us';
+// API 基础地址 — 同源部署，开发环境用本地
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 class ApiClient {
   private token: string | null = null;
