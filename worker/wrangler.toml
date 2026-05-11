@@ -4,9 +4,9 @@ compatibility_date = "2024-12-01"
 
 [vars]
 
-[env.production.routes]
-pattern = "oil-api.0037.us"
-custom_domain = true
+[[routes]]
+pattern = "oil-api.0037.us/*"
+zone_name = "0037.us"
 
 [[d1_databases]]
 binding = "DB"
