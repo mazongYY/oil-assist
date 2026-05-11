@@ -1,0 +1,10 @@
+name = "oil-assist-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[vars]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "oil-assist"
+database_id = "4fafbb7c-ad39-4c44-bffc-1d537d5bebca"
