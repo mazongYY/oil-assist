@@ -30,8 +30,8 @@ export default function Register() {
       className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: `url(${WALLPAPER_URL})` }}
     >
-      {/* 毛玻璃遮罩 */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      {/* 半透明遮罩（不模糊） */}
+      <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 w-full max-w-sm">
         <div className="text-center mb-8">
